@@ -14,13 +14,13 @@ namespace VideoServerAPI.Models
         [Key]
         public Guid Id { get; set; }
         [Required]
-        public string Descricao { get; set; }
+        public string Description { get; set; }
 
         /// <summary>
         /// ○	Conteúdo binário dos vídeos deve ser mantido no sistema de arquivos
         /// </summary>
         [Required]       
-        public string NomeArquivoVideo { get; set; }
+        public byte[] VideoContent { get; set; }
         
         public Server Server { get; set; }
         public Guid ServerId { get; set; }

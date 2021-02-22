@@ -12,11 +12,11 @@ namespace VideoServerAPI.Models
         [Key]
         public Guid Id { get; set; }
         [Required]
-        public string Nome { get; set; }
+        public string Name { get; set; }
         [Required]
         public string Ip { get; set; }
         [Required]
-        public int Porta { get; set; }
+        public int Port { get; set; }
         public List<Video> Videos { get; } = new();        
     }
 }
