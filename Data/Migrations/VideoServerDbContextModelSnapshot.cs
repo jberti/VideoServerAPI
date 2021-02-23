@@ -26,11 +26,11 @@ namespace VideoServerAPI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Porta")
+                    b.Property<int>("Port")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -44,16 +44,16 @@ namespace VideoServerAPI.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("NomeArquivoVideo")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("ServerId")
                         .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("VideoContent")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
 
                     b.HasKey("Id");
 
