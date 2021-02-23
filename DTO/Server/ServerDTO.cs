@@ -7,8 +7,8 @@ namespace VideoServerAPI.Dto.Server
 {
     public class ServerDTO
     {
-        public string Name;
-        public string Ip;
-        public int Port;
+        public string Name { get; set; }
+        public string Ip { get; set; }
+        public int Port { get; set; }
     }
 }
