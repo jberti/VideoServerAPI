@@ -19,7 +19,7 @@ namespace VideoServerAPI.Controllers
     public class ServersController : ControllerBase
     {
         private readonly VideoServerDbContext _context;
-
+        
         public ServersController(VideoServerDbContext context)
         {
             _context = context;
@@ -46,8 +46,8 @@ namespace VideoServerAPI.Controllers
             return server;
         }
 
-        [HttpGet("{serverId}")]
-        [Route("api/[controller]/available/{id}")]
+        [Route("available/{serverId}")]
+        [HttpGet]        
         public async Task<ActionResult<string>> IsServerOnline(Guid serverId)
         {
             string response = "";
@@ -86,7 +86,8 @@ namespace VideoServerAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Server>> PostServer([FromBody]ServerDTO serverDto)
         {
-            if (ServerExists(serverDto.Ip, serverDto.Port)){
+            if (await ServerExistsAsync(serverDto.Ip, serverDto.Port))
+            {
                 return StatusCode(409, "Servidor já existente");
             }
 
@@ -103,11 +104,11 @@ namespace VideoServerAPI.Controllers
 
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetServer", new { id = server.Id }, server);
+            return CreatedAtAction("GetServer", new { serverId = server.Id }, server);
         }
 
         [HttpPost]
-        [Route("api/[controller]/{serverId}/videos")]
+        [Route("{serverId}/videos")]
         public async Task<IActionResult> Addvideo(Guid serverId, [FromBody] VideoInputDTO videoDTO)
         {
             var server = await _context.Servers.FindAsync(serverId);
@@ -131,16 +132,20 @@ namespace VideoServerAPI.Controllers
                 {
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
+                catch
                 {
                     throw;                    
                 }
             }
-            return NoContent();            
+            return Ok();            
         }
 
+        // Pela documentação apresentada, não existe situação de existir um vídeo que não esteja associado a um servidor.
+        // Por isso, e somente isso, acredito que não seria necessário passar o id do servidor como parâmetro, o id do video seria suficiente.
+        // De qualquer forma meu modelo de dados permite saber qual o servidor que possui um determinado video, porque um video tem o id de seru servidor e
+        // aí eu consigo validar o id do servidor.       
         [HttpGet]
-        [Route("api/[controller]/{serverId}/videos/{videoId}")]
+        [Route("{serverId}/videos/{videoId}")]                
         public async Task<ActionResult<VideoInformationDTO>> GetVideoInformation(Guid serverId, Guid videoId)
         {
             Server server;
@@ -171,9 +176,39 @@ namespace VideoServerAPI.Controllers
             return videoInfoDTO;    
 
         }
+        [HttpGet]
+        [Route("{serverId}/videos")]
+        public async Task<ActionResult<List<VideoInformationDTO>>> GetServerVideos(Guid serverId)
+        {
+            Server server;
+            List<VideoInformationDTO> videoList;
+
+            server = await _context.Servers.FindAsync(serverId);
+            if (server == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                // fazer mapping
+                videoList = new List<VideoInformationDTO>();
+                foreach (Video video in server.Videos)
+                {
+                    videoList.Add(new VideoInformationDTO
+                    {
+                        VideoId = video.Id,
+                        Description = video.Description,
+                        SizeInBytes = video.VideoContent.Length
+                    });                    
+                }
+                return videoList;
+            }
+        }
+               
 
         [HttpDelete]
-        [Route("/api/servers/{serverId}/videos/{videoId}")]
+        [Route("{serverId}/videos/{videoId}")]
+        // Situação análoga ao método GetVideoInformation. A partir do id do video eu sei qual o servidor.
         public async Task<IActionResult> DeleteVideo(Guid serverId, Guid videoId)
         {
             Server server;
@@ -199,12 +234,12 @@ namespace VideoServerAPI.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch 
             {
                 throw;
             }
 
-            return NoContent();
+            return Ok();
 
         }
 
@@ -219,14 +254,22 @@ namespace VideoServerAPI.Controllers
             }
 
             _context.Servers.Remove(server);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                throw;
+            }
 
-            return NoContent();
+            return Ok();
         }
 
-        private bool ServerExists(string ip, int port)
+        
+        private async Task<bool> ServerExistsAsync(string ip, int port)
         {
-            return _context.Servers.Any(server => server.Ip == ip && server.Port == port);
+            return await _context.Servers.AnyAsync(server => server.Ip == ip && server.Port == port);
         }
     }
 }
