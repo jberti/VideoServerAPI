@@ -18,7 +18,7 @@ namespace VideoServerAPI.Data.Migrations
 
             modelBuilder.Entity("VideoServerAPI.Models.Server", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("ServerId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
@@ -33,14 +33,14 @@ namespace VideoServerAPI.Data.Migrations
                     b.Property<int>("Port")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.HasKey("ServerId");
 
                     b.ToTable("Servers");
                 });
 
             modelBuilder.Entity("VideoServerAPI.Models.Video", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("VideoId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
@@ -55,7 +55,7 @@ namespace VideoServerAPI.Data.Migrations
                         .IsRequired()
                         .HasColumnType("BLOB");
 
-                    b.HasKey("Id");
+                    b.HasKey("VideoId");
 
                     b.HasIndex("ServerId");
 
