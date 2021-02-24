@@ -16,7 +16,6 @@ namespace VideoServerAPI.Controllers
     [ApiController]
     public class VideosController : ApplicationControllerBase
     {
-        private readonly VideoServerDbContext _context;
 
         public VideosController(VideoServerDbContext context, IMapper mapper) : base(context, mapper)
         {
@@ -77,10 +76,10 @@ namespace VideoServerAPI.Controllers
             if (server == null) return NotFound();
 
 
-            var videoList = await Context.Videos.Where(video => video.ServerId == serverId).ToListAsync();
+            var videoList = (await Context.Videos.Where(video => video.ServerId == serverId).ToListAsync());
 
-            var videoListDTO = videoList.Select(video => Mapper.Map<VideoDTO>(video));
-            return Ok(videoListDTO);
+            var videoDTOList = videoList.Select(video => Mapper.Map<VideoDTO>(video));
+            return Ok(videoDTOList);
         }
 
         [HttpGet]
