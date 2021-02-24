@@ -10,7 +10,7 @@ namespace VideoServerAPI.Models
     public class Server
     {
         [Key]
-        public Guid Id { get; set; }
+        public Guid ServerId { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]

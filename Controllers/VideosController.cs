@@ -2,107 +2,132 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VideoServerAPI.Data;
+using VideoServerAPI.DTO.Video;
 using VideoServerAPI.Models;
 
 namespace VideoServerAPI.Controllers
 {
-    //[Route("api/[controller]")]
+    [Route("api/servers")]
     [ApiController]
-    public class VideosController : ControllerBase
+    public class VideosController : ApplicationControllerBase
     {
         private readonly VideoServerDbContext _context;
 
-        public VideosController(VideoServerDbContext context)
+        public VideosController(VideoServerDbContext context, IMapper mapper) : base(context, mapper)
         {
-            _context = context;
+
         }
 
-        // GET:	/api/servers/{serverId}/videos
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Video>>> GetVideos(Guid serverId)
+        [HttpPost]
+        [Route("{serverId}/videos")]
+        public async Task<IActionResult> Addvideo(Guid serverId, [FromBody] VideoDTO videoDTO)
         {
-            return await _context.Videos.Where(video => video.ServerId == serverId).ToListAsync();
-        }
+            var server = await Context.Servers.FindAsync(serverId);
+            if (server == null) return NotFound();
 
-        // GET: api/Videos/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Video>> GetVideo(Guid id)
-        {
-            var video = await _context.Videos.FindAsync(id);
+            var video = Mapper.Map<Video>(videoDTO);
+            video.VideoId = Guid.NewGuid();
+            video.VideoContent = Convert.FromBase64String(videoDTO.VideoDataBase64);
+            video.ServerId = serverId;
+            Context.Entry(video).State = EntityState.Added;
 
-            if (video == null)
+            try
             {
-                return NotFound();
+                await Context.SaveChangesAsync();
             }
-
-            return video;
-        }
-
-        // PUT: api/Videos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutVideo(Guid id, Video video)
-        {
-            if (id != video.Id)
+            catch
             {
                 return BadRequest();
             }
 
-            _context.Entry(video).State = EntityState.Modified;
+
+            return Ok();
+        }
+
+        // Pela documentação apresentada, não existe situação de existir um vídeo que não esteja associado a um servidor.
+        // Por isso, e somente isso, acredito que não seria necessário passar o id do servidor como parâmetro, o id do video seria suficiente.
+        // De qualquer forma meu modelo de dados permite saber qual o servidor que possui um determinado video, porque um video tem o id de seru servidor e
+        // aí eu consigo validar o id do servidor.       
+        [HttpGet]
+        [Route("{serverId}/videos/{videoId}")]
+        public async Task<ActionResult<VideoDTO>> GetVideoInformation(Guid serverId, Guid videoId)
+        {
+
+            var server = await Context.Servers.FindAsync(serverId);
+            if (server == null) return NotFound();
+
+            var video = await Context.Videos.FindAsync(videoId);
+            if (video == null) return NotFound();
+
+            var videoDTO = Mapper.Map<VideoDTO>(video);
+
+            return Ok(videoDTO);
+        }
+
+        [HttpGet]
+        [Route("{serverId}/videos")]
+        public async Task<ActionResult<IEnumerable<VideoDTO>>> GetServerVideos(Guid serverId)
+        {
+            var server = await Context.Servers.FindAsync(serverId);
+            if (server == null) return NotFound();
+
+
+            var videoList = await Context.Videos.Where(video => video.ServerId == serverId).ToListAsync();
+
+            var videoListDTO = videoList.Select(video => Mapper.Map<VideoDTO>(video));
+            return Ok(videoListDTO);
+        }
+
+        [HttpGet]
+        [Route("{serverId}/videos/{videoId}/binary")]
+        public async Task<ActionResult> DownloadVideo(Guid serverId, Guid videoId)
+        {
+            var server = await Context.Servers.FindAsync(serverId);
+            if (server == null) return NotFound();
+
+            var video = await Context.Videos.FindAsync(videoId);
+            if (video == null) return NotFound();
+
+            return File(video.VideoContent, "application/octet-stream");
+        }
+
+        [HttpDelete]
+        [Route("{serverId}/videos/{videoId}")]
+        // Situação análoga ao método GetVideoInformation. A partir do id do video eu sei qual o servidor.
+        public async Task<IActionResult> DeleteVideo(Guid serverId, Guid videoId)
+        {
+            Server server;
+            Video video;
+
+            server = await Context.Servers.FindAsync(serverId);
+            if (server == null) return NotFound();
+
+            video = await Context.Videos.FindAsync(videoId);
+            if (video == null) return NotFound();
+
+            server.Videos.Remove(video);
+            //Context.Videos.Remove(video);
+            Context.Entry(server).State = EntityState.Modified;
+            Context.Entry(video).State = EntityState.Deleted;
+
 
             try
             {
-                await _context.SaveChangesAsync();
+                await Context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch
             {
-                if (!VideoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest();
             }
 
-            return NoContent();
-        }
-
-        // POST: api/Videos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Video>> PostVideo(Video video)
-        {
-            _context.Videos.Add(video);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetVideo", new { id = video.Id }, video);
-        }
-
-        // DELETE: api/Videos/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteVideo(Guid id)
-        {
-            var video = await _context.Videos.FindAsync(id);
-            if (video == null)
-            {
-                return NotFound();
-            }
-
-            _context.Videos.Remove(video);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool VideoExists(Guid id)
-        {
-            return _context.Videos.Any(e => e.Id == id);
+            return Ok();
         }
     }
+        
+    
 }

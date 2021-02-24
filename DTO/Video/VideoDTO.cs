@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 
 namespace VideoServerAPI.DTO.Video
 {
-    public class VideoInputDTO
+    public class VideoDTO
     {
+        public Guid? VideoId { get; set; }
         public string Description { get; set; }
         public string VideoDataBase64 { get; set; }
-    }   
+        public int? SizeInBytes { get; set; }
+    }
 }
