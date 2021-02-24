@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VideoServerAPI.Data;
+using VideoServerAPI.DTO;
 
 namespace VideoServerAPI
 {
@@ -30,12 +31,15 @@ namespace VideoServerAPI
         {
             services.AddDbContext<VideoServerDbContext>(options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
+            services.AddAutoMapper(typeof(AutoMapperProfile));
+
             services.AddControllers().AddNewtonsoftJson();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "VideoServerAPI", Version = "v1" });
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
+
 
 
         }
