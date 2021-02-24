@@ -11,33 +11,33 @@ namespace VideoServerAPI.Data.Migrations
                 name: "Servers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ServerId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Ip = table.Column<string>(type: "TEXT", nullable: false),
                     Port = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Servers", x => x.Id);
+                    table.PrimaryKey("PK_Servers", x => x.ServerId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Videos",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    VideoId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
                     VideoContent = table.Column<byte[]>(type: "BLOB", nullable: false),
                     ServerId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Videos", x => x.Id);
+                    table.PrimaryKey("PK_Videos", x => x.VideoId);
                     table.ForeignKey(
                         name: "FK_Videos_Servers_ServerId",
                         column: x => x.ServerId,
                         principalTable: "Servers",
-                        principalColumn: "Id",
+                        principalColumn: "ServerId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
