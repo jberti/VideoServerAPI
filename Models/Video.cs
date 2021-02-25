@@ -21,6 +21,8 @@ namespace VideoServerAPI.Models
         /// </summary>
         [Required]       
         public byte[] VideoContent { get; set; }
+
+        public DateTime DateAdded { get; set; }
         
         public Server Server { get; set; }
         public Guid ServerId { get; set; }

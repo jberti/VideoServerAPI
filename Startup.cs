@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VideoServerAPI.Data;
 using VideoServerAPI.DTO;
+using VideoServerAPI.Services;
 
 namespace VideoServerAPI
 {
@@ -40,6 +41,7 @@ namespace VideoServerAPI
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
 
+            //services.AddHostedService<RecyclerService>();
 
 
         }
@@ -60,15 +62,7 @@ namespace VideoServerAPI
 
             app.UseRouting();
 
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                endpoints.MapControllerRoute(
-                    name: "videos",
-                    pattern: "api/servers/{serverId}/{controller}/{videoId?}");
-            });
+            app.UseAuthorization();            
         }
     }
 }

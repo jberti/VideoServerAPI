@@ -33,6 +33,8 @@ namespace VideoServerAPI.Controllers
             video.VideoId = Guid.NewGuid();
             video.VideoContent = Convert.FromBase64String(videoDTO.VideoDataBase64);
             video.ServerId = serverId;
+            video.DateAdded = DateTime.Today;
+
             Context.Entry(video).State = EntityState.Added;
 
             try
