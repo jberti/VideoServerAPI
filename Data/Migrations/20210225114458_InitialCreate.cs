@@ -28,6 +28,7 @@ namespace VideoServerAPI.Data.Migrations
                     VideoId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
                     VideoContent = table.Column<byte[]>(type: "BLOB", nullable: false),
+                    DateAdded = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ServerId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

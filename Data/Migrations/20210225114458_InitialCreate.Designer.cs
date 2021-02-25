@@ -9,7 +9,7 @@ using VideoServerAPI.Data;
 namespace VideoServerAPI.Data.Migrations
 {
     [DbContext(typeof(VideoServerDbContext))]
-    [Migration("20210224015903_InitialCreate")]
+    [Migration("20210225114458_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,9 @@ namespace VideoServerAPI.Data.Migrations
                 {
                     b.Property<Guid>("VideoId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("DateAdded")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")

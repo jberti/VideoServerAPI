@@ -39,30 +39,42 @@ namespace VideoServerAPI.Services
             var videoList = await dbContext.Videos.Where(video => video.DateAdded.AddDays(_days) < DateTime.Today).ToListAsync();
             foreach (Video video in videoList)
             {
-                Videos.Add(video.VideoId);
+                Videos.TryAdd(video.VideoId);
             }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<VideoServerDbContext>();
-            optionsBuilder.UseSqlServer("DefaultConnection");
+            Guid videoId;
 
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                var videoId = Videos.Take();                
-                using var newContext = GetNewDbContext();
-                newContext.Videos.Remove(await(newContext.FindAsync<Video>(videoId)));
-                try
+            await Task.Yield();
+            while (!Videos.IsCompleted)
+            {                
+                Videos.TryTake(out videoId,100);
+                if (videoId != Guid.Empty)
                 {
-                    await newContext.SaveChangesAsync();
-                }
-                catch
-                {
-
+                    await DeleteVideo(videoId);
                 }
             }
         }
+
+        private async Task DeleteVideo(Guid videoId)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<VideoServerDbContext>();
+            optionsBuilder.UseSqlServer("DefaultConnection");
+            using var newContext = GetNewDbContext();
+            newContext.Videos.Remove(await(newContext.FindAsync<Video>(videoId)));
+            try
+            {
+                await newContext.SaveChangesAsync();
+            }
+            catch
+            {
+
+            }
+        }
+
+       
     }
 
 }

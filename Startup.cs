@@ -41,7 +41,7 @@ namespace VideoServerAPI
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
 
-            //services.AddHostedService<RecyclerService>();
+            services.AddHostedService<RecyclerService>();
 
 
         }
@@ -62,7 +62,12 @@ namespace VideoServerAPI
 
             app.UseRouting();
 
-            app.UseAuthorization();            
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }
