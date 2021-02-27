@@ -10,6 +10,7 @@ namespace VideoServerAPI.Controllers
         protected readonly VideoServerDbContext Context;
         protected readonly IMapper Mapper;
 
+        
         public ApplicationControllerBase(VideoServerDbContext context, IMapper mapper)
         {
             Context = context;

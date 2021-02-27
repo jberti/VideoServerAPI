@@ -50,8 +50,7 @@ namespace VideoServerAPI.Controllers
         {            
 
             var server = await Context.Servers.FindAsync(serverId);
-            if (server == null) return "Not found";
-            
+            if (server == null) return "Not found";            
             
             var serverIp = server.Ip;
             var serverPort = server.Port;
@@ -69,15 +68,12 @@ namespace VideoServerAPI.Controllers
             else
             {
                 return "Server offline or unreachable";
-            }                              
-
-            
+            }        
         }
 
-        // POST: api/Servers
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/Servers        
         [HttpPost]
-        public async Task<ActionResult<Server>> PostServer([FromBody]ServerDTO serverDto)
+        public async Task<ActionResult<ServerDTO>> PostServer([FromBody]ServerDTO serverDto)
         {
             if (await ServerExistsAsync(serverDto.Ip, serverDto.Port))
             {
@@ -89,7 +85,6 @@ namespace VideoServerAPI.Controllers
 
             Context.Servers.Add(server);
             Context.Entry(server).State = EntityState.Added;
-
             
             try
             {
@@ -99,9 +94,7 @@ namespace VideoServerAPI.Controllers
             catch
             {
                 return BadRequest();
-            }
-
-            
+            }            
         }        
 
         // DELETE: api/Servers/5
@@ -109,9 +102,9 @@ namespace VideoServerAPI.Controllers
         public async Task<IActionResult> DeleteServer(Guid serverId)
         {
             var server = await Context.Servers.FindAsync(serverId);
-            if (server == null)  return NotFound();
-
-            Context.Servers.Remove(server);
+            if (server == null)  return NotFound("Server "+serverId+" not found");
+                        
+            Context.Entry(server).State = EntityState.Deleted;
 
             try
             {
@@ -125,7 +118,9 @@ namespace VideoServerAPI.Controllers
             return Ok();
         }
 
-        
+        /// <summary>
+        /// A regra é que não podem haver servidores com mesmo ip e porta.
+        /// </summary>
         private async Task<bool> ServerExistsAsync(string ip, int port)
         {
             return await Context.Servers.AnyAsync(server => server.Ip == ip && server.Port == port);

@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VideoServerAPI.Data;
 using VideoServerAPI.DTO;
+using VideoServerAPI.Services;
 
 namespace VideoServerAPI
 {
@@ -39,9 +40,8 @@ namespace VideoServerAPI
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "VideoServerAPI", Version = "v1" });
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
-
-
-
+                        
+            //services.AddHostedService<RecyclerService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,9 +65,6 @@ namespace VideoServerAPI
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapControllerRoute(
-                    name: "videos",
-                    pattern: "api/servers/{serverId}/{controller}/{videoId?}");
             });
         }
     }
