@@ -15,10 +15,7 @@ namespace VideoServerAPI.Models
         public Guid VideoId { get; set; }
         [Required]
         public string Description { get; set; }
-
-        /// <summary>
-        /// ○	Conteúdo binário dos vídeos deve ser mantido no sistema de arquivos
-        /// </summary>
+                
         [Required]       
         public byte[] VideoContent { get; set; }
 

@@ -12,7 +12,10 @@ namespace VideoServerAPI.DTO
     {
         public AutoMapperProfile()
         {
-            CreateMap<Models.Server, ServerDTO>().ReverseMap();             
+            CreateMap<Models.Server, ServerDTO>().ReverseMap();   
+
+            ///Essa regra de map é para quando um objeto tipo VideoDTO é usado como saída, o campo SizeInBytes é calculado a partir do tamanho
+            /// do array de bytes armazenado.
             CreateMap<Models.Video, VideoDTO>().ForMember(dest => dest.SizeInBytes, options => options.MapFrom(source => source.VideoContent.Length)).ReverseMap();
         }
     }

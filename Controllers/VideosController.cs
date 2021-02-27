@@ -16,10 +16,10 @@ namespace VideoServerAPI.Controllers
     [ApiController]
     public class VideosController : ApplicationControllerBase
     {
-
+        
         public VideosController(VideoServerDbContext context, IMapper mapper) : base(context, mapper)
         {
-
+            
         }
 
         [HttpPost]
@@ -77,10 +77,8 @@ namespace VideoServerAPI.Controllers
             var server = await Context.Servers.FindAsync(serverId);
             if (server == null) return NotFound();
 
-
-            var videoList = (await Context.Videos.Where(video => video.ServerId == serverId).ToListAsync());
-
-            var videoDTOList = videoList.Select(video => Mapper.Map<VideoDTO>(video));
+            var videoDTOList = (await Context.Videos.Where(video => video.ServerId == serverId).ToListAsync()).Select(video => Mapper.Map<VideoDTO>(video));
+            
             return Ok(videoDTOList);
         }
 
@@ -112,10 +110,9 @@ namespace VideoServerAPI.Controllers
             if (video == null) return NotFound();
 
             server.Videos.Remove(video);
-            //Context.Videos.Remove(video);
+            
             Context.Entry(server).State = EntityState.Modified;
             Context.Entry(video).State = EntityState.Deleted;
-
 
             try
             {

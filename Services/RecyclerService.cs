@@ -19,6 +19,7 @@ namespace VideoServerAPI.Services
         public BlockingCollection<Guid> Videos { get; set; }
         private readonly IServiceScopeFactory _scopeFactory;
         private int _days;
+        public string status { get; set; }
         
         public RecyclerService(IServiceScopeFactory scopeFactory)
         {
@@ -48,20 +49,23 @@ namespace VideoServerAPI.Services
             Guid videoId;
 
             await Task.Yield();
+            status = "Not Running";
+
             while (!Videos.IsCompleted)
             {                
                 Videos.TryTake(out videoId,100);
                 if (videoId != Guid.Empty)
                 {
+                    status = "Running";
                     await DeleteVideo(videoId);
+                    status = "Not Running";
                 }
             }
         }
 
         private async Task DeleteVideo(Guid videoId)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<VideoServerDbContext>();
-            optionsBuilder.UseSqlServer("DefaultConnection");
+            
             using var newContext = GetNewDbContext();
             newContext.Videos.Remove(await(newContext.FindAsync<Video>(videoId)));
             try
