@@ -47,33 +47,39 @@ namespace VideoServerAPI.Controllers
         [Route("available/{serverId}")]
         [HttpGet]        
         public async Task<ActionResult<string>> IsServerOnline(Guid serverId)
-        {            
-
+        {
             var server = await Context.Servers.FindAsync(serverId);
             if (server == null) return "Not found";            
             
             var serverIp = server.Ip;
             var serverPort = server.Port;
 
-            TcpClient telnet = new TcpClient(serverIp, serverPort);
-            NetworkStream telnetStream = telnet.GetStream();
-            string requestResponse = new StreamReader(telnetStream).ToString();
+            TcpClient tcpClient = new TcpClient(serverIp, serverPort);            
 
-            string prompt = requestResponse.TrimEnd();
-            prompt = requestResponse.Substring(prompt.Length - 1, 1);
-            if (prompt == "$" || prompt == ">")
+            try 
             {
-                return Ok("Server online");
+                await tcpClient.ConnectAsync(serverIp, serverPort);
+                if (tcpClient.Connected)
+                {
+                    return Ok("Server online");
+                }
+                else
+                {
+                    return NotFound("Server offline or unreachable");
+                }
+
             }
-            else
+            catch
             {
-                return "Server offline or unreachable";
-            }        
+                tcpClient.Close();
+                return BadRequest();
+            }   
+            
         }
 
         // POST: api/Servers        
         [HttpPost]
-        public async Task<ActionResult<ServerDTO>> PostServer([FromBody]ServerDTO serverDto)
+        public async Task<ActionResult<ServerDTO>> AddServer([FromBody]ServerDTO serverDto)
         {
             if (await ServerExistsAsync(serverDto.Ip, serverDto.Port))
             {

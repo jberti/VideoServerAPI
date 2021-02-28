@@ -17,6 +17,15 @@ namespace VideoServerAPI.Data
         public DbSet<Video> Videos { get; set; }
 
         public DbSet<Server> Servers { get; set; }
+
+        public void ApplyMigrations()
+        {
+            var pendingMigrations = Database.GetPendingMigrations().ToList();
+            if (pendingMigrations.Any())
+            {                
+                Database.Migrate();
+            }
+        }
         
     }
 }

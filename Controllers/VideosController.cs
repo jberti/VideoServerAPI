@@ -40,20 +40,24 @@ namespace VideoServerAPI.Controllers
             try
             {
                 await Context.SaveChangesAsync();
+                return CreatedAtAction(nameof(GetVideoInformation), new { serverId = server.ServerId, videoId = video.VideoId }, video);
             }
             catch
             {
                 return BadRequest();
             }
-
-
-            return Ok();
+            
         }
+        /// <summary>
+        /// Pela documentação apresentada, não existe situação de existir um vídeo que não esteja associado a um servidor.
+        ///  Por isso, e somente isso, acredito que não seria necessário passar o id do servidor como parâmetro, o id do video seria suficiente.
+        ///  De qualquer forma meu modelo de dados permite saber qual o servidor que possui um determinado video, porque um video tem o id de seru servidor e
+        ///  aí eu consigo validar o id do servidor. 
+        /// </summary>
+        /// <param name="serverId"></param>
+        /// <param name="videoId"></param>
+        /// <returns></returns>
 
-        // Pela documentação apresentada, não existe situação de existir um vídeo que não esteja associado a um servidor.
-        // Por isso, e somente isso, acredito que não seria necessário passar o id do servidor como parâmetro, o id do video seria suficiente.
-        // De qualquer forma meu modelo de dados permite saber qual o servidor que possui um determinado video, porque um video tem o id de seru servidor e
-        // aí eu consigo validar o id do servidor.       
         [HttpGet]
         [Route("{serverId}/videos/{videoId}")]
         public async Task<ActionResult<VideoDTO>> GetVideoInformation(Guid serverId, Guid videoId)
@@ -95,9 +99,14 @@ namespace VideoServerAPI.Controllers
             return File(video.VideoContent, "application/octet-stream");
         }
 
+        /// <summary>
+        /// Situação análoga ao método GetVideoInformation. A partir do id do video eu sei qual o servidor.
+        /// </summary>
+        /// <param name="serverId"></param>
+        /// <param name="videoId"></param>
+        /// <returns></returns>
         [HttpDelete]
-        [Route("{serverId}/videos/{videoId}")]
-        // Situação análoga ao método GetVideoInformation. A partir do id do video eu sei qual o servidor.
+        [Route("{serverId}/videos/{videoId}")]         
         public async Task<IActionResult> DeleteVideo(Guid serverId, Guid videoId)
         {
             Server server;
