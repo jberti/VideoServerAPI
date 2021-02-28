@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,72 +21,42 @@ namespace VideoServerAPI.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]    
-    public class RecyclerController : ControllerBase
+    public class RecyclerController : ApplicationControllerBase
     {
-        private readonly IServiceScopeFactory _scopeFactory;        
-        BlockingCollection<Guid> _recyclableVideosGuidList;
+        private readonly IServiceScopeFactory _scopeFactory;
+        private RecylerInterPoser _recyclerInterposer;
+        
 
-        public RecyclerController(IServiceScopeFactory scopeFactory)
+        public RecyclerController(VideoServerDbContext context, IMapper mapper, IServiceScopeFactory scopeFactory, RecylerInterPoser recylerInterPoser) : base(context, mapper)
         {
             _scopeFactory = scopeFactory;
-            _recyclableVideosGuidList = new BlockingCollection<Guid>();            
+            _recyclerInterposer = recylerInterPoser;           
         }
 
         [Route("process/{days}")]
         [HttpPost]
         public async Task<IActionResult> RecycleVideos(int days)
         {
-            return await DoRecycleVideos(days);
+            var videoList = await Context.Videos.Where(video => video.DateAdded.AddDays(days) < DateTime.Today).ToListAsync();
+            foreach (Video video in videoList)
+            {
+                _recyclerInterposer.Videos.Add(video.VideoId);
+            }
+
+            return StatusCode(202);
         }
 
         [Route("status")]
         [HttpGet]
         public string GetStatus()
         {
-            if (_recyclableVideosGuidList.Count > 0)
+            if (_recyclerInterposer.Videos.Count > 0)
             {
                 return "Running";
             }
             else
             {
                 return "Not Running";
-            }
-        }
-
-        private async Task<IActionResult> DoRecycleVideos(int days)
-        {
-            try
-            {
-                await BuildRecyclableVideosListAsync(days);
-                await DeleteVideosToBeRecycled();
-
-                return StatusCode(202);
-            }
-            catch (Exception)
-            {
-                return BadRequest(); 
-            }
-        }
-
-        private async Task BuildRecyclableVideosListAsync(int days)
-        {            
-            using var dbContext = GetNewDbContext();
-            var videoList = await dbContext.Videos.Where(video => video.DateAdded.AddDays(days) < DateTime.Today).ToListAsync();
-            foreach (Video video in videoList)
-            {
-                _recyclableVideosGuidList.TryAdd(video.VideoId);
-            }            
-        }
-
-        private async Task DeleteVideosToBeRecycled()
-        {            
-            while (!_recyclableVideosGuidList.IsCompleted)
-            {
-                _recyclableVideosGuidList.TryTake(out Guid videoId, 100);
-                if (videoId != Guid.Empty)
-                {
-                    await DeleteVideo(videoId);
-                }
             }
         }
 

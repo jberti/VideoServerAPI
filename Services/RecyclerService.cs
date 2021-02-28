@@ -16,15 +16,16 @@ namespace VideoServerAPI.Services
 {
     public class RecyclerService : BackgroundService, IHostedService
     {
-        public BlockingCollection<Guid> Videos { get; set; }
+        
         private readonly IServiceScopeFactory _scopeFactory;
+        private RecylerInterPoser _recyclerInterposer;
         private int _days;
         public string status { get; set; }
         
-        public RecyclerService(IServiceScopeFactory scopeFactory)
+        public RecyclerService(IServiceScopeFactory scopeFactory, RecylerInterPoser recylerInterPoser)
         {
             _scopeFactory = scopeFactory;
-            Videos = new BlockingCollection<Guid>();
+            _recyclerInterposer = recylerInterPoser;
         }
 
         private VideoServerDbContext GetNewDbContext()
@@ -33,27 +34,19 @@ namespace VideoServerAPI.Services
             return scope.ServiceProvider.GetRequiredService<VideoServerDbContext>();
         }
         
-        public async void RecycleVideos(int days)
-        {
-            _days = days;
-            using var dbContext = GetNewDbContext();
-            var videoList = await dbContext.Videos.Where(video => video.DateAdded.AddDays(_days) < DateTime.Today).ToListAsync();
-            foreach (Video video in videoList)
-            {
-                Videos.TryAdd(video.VideoId);
-            }
-        }
+        
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Guid videoId;
+             
 
             await Task.Yield();
             status = "Not Running";
 
-            while (!Videos.IsCompleted)
-            {                
-                Videos.TryTake(out videoId,100);
+            while (!stoppingToken.IsCancellationRequested)            {   
+                
+                videoId =_recyclerInterposer.Videos.Take();
                 if (videoId != Guid.Empty)
                 {
                     status = "Running";
